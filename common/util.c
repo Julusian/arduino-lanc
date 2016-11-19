@@ -7,20 +7,10 @@ int scanByte(bool skipDelay){
   }
 
   // read byte of data
-  result += digitalRead(inputPin) << 0;
-  delayMicroseconds(readBitDuration);
-  result += digitalRead(inputPin) << 1;
-  delayMicroseconds(readBitDuration);
-  result += digitalRead(inputPin) << 2;
-  delayMicroseconds(readBitDuration);
-  result += digitalRead(inputPin) << 3;
-  delayMicroseconds(readBitDuration);
-  result += digitalRead(inputPin) << 4;
-  delayMicroseconds(readBitDuration);
-  result += digitalRead(inputPin) << 5;
-  delayMicroseconds(readBitDuration);
-  result += digitalRead(inputPin) << 6;
-  delayMicroseconds(readBitDuration);
+  for (int i=0; i<7; i++) {
+    result += digitalRead(inputPin) << i;
+    delayMicroseconds(readBitDuration);
+  }
   result += digitalRead(inputPin) << 7;
 
   // shift into stop 'bit'
@@ -30,14 +20,20 @@ int scanByte(bool skipDelay){
 }
 
 void writeByte(int data){
-    //0 after long pause means the START bit of Byte 0 is here
-    delayMicroseconds(bitDuration);  //wait START bit duration
+    delayMicroseconds(bitDuration);  // wait START bit duration
 
-    //Write the 8 bits of byte 0 
-    //Note that the command bits have to be put out in reverse order with the least significant, right-most bit (bit 0) first
-    for (int i=7; i>-1; i--) {
-      digitalWrite(outputPin, data >> i);  //Write bits. 
+    for (int i=0; i<8; i++) {
+      digitalWrite(outputPin, bitRead(data, i));
       delayMicroseconds(writeBitDuration); 
     }
 }
 
+void printHex(int num, int precision) {
+     char tmp[16];
+     char format[128];
+
+     sprintf(format, "%%.%dX", precision);
+
+     sprintf(tmp, format, num);
+     Serial.print(tmp);
+}

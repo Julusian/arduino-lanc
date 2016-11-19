@@ -1,12 +1,14 @@
 /*
-SIMPLE LANC REMOTE
-Version 1.0
-Sends LANC commands to the LANC port of a video camera.
-Tested with a Canon XF300 camcorder
-For the interface circuit interface see 
+ARDUINO-LANC Output (to camera)
+https://github.com/Julusian/arduino-lanc
+
+Accepts commands in the format: #28-0E
+Responds with OK after command has been fully written to the camera
+
+For a list of commands see http://www.boehmel.de/lanc.htm
+
+Based on the work by Martin Koch
 http://controlyourcamera.blogspot.com/2011/02/arduino-controlled-video-recording-over.html
-Feel free to use this code in any way you want.
-2011, Martin Koch
 
 "LANC" is a registered trademark of SONY.
 CANON calls their LANC compatible port "REMOTE".
@@ -33,7 +35,7 @@ void setup() {
 void lancCommand(int mode, int cmd) {
   int cmdRepeatCount = 0;
 
-  while (cmdRepeatCount < 50) {  //repeat 5 times to make sure the camera accepts the command
+  while (cmdRepeatCount < cmdRepeatTimes) {  //repeat to make sure the camera accepts the command
 
     while (pulseIn(inputPin, 1) < 5000) {   
       //"pulseIn, 1" catches any 0V TO +5V TRANSITION and waits until the LANC line goes back to 0V 
@@ -41,15 +43,7 @@ void lancCommand(int mode, int cmd) {
       //Loop till pulse duration is >5ms
     }
 
-    //0 after long pause means the START bit of Byte 0 is here
-    delayMicroseconds(bitDuration);  //wait START bit duration
-
-    //Write the 8 bits of byte 0 
-    //Note that the command bits have to be put out in reverse order with the least significant, right-most bit (bit 0) first
-    for (int i=0; i<8; i++) {
-      digitalWrite(outputPin, bitRead(mode, i));  //Write bits. 
-      delayMicroseconds(writeBitDuration); 
-    }
+    writeByte(mode);
    
     //Byte 0 is written now put LANC line back to +5V
     digitalWrite(outputPin, 0);
@@ -59,23 +53,12 @@ void lancCommand(int mode, int cmd) {
       //Loop as long as the LANC line is +5V during the stop bit
     }
 
-    //0V after the previous stop bit means the START bit of Byte 1 is here
-    delayMicroseconds(bitDuration);  //wait START bit duration
-
-    //Write the 8 bits of Byte 1
-    //Note that the command bits have to be put out in reverse order with the least significant, right-most bit (bit 0) first
-    for (int i=0; i<8; i++) {
-      digitalWrite(outputPin, bitRead(cmd, i));  //Write bits 
-      delayMicroseconds(writeBitDuration);
-    }
+    writeByte(cmd);
 
     //Byte 1 is written now put LANC line back to +5V
     digitalWrite(outputPin, 0); 
 
-    cmdRepeatCount++;  //increase repeat count by 1
-   
-    /*Control bytes 0 and 1 are written, now don’t care what happens in Bytes 2 to 7
-    and just wait for the next start bit after a long pause to send the first two command bytes again.*/
+    cmdRepeatCount++;
 
     // TODO - read remaining 6 bytes and send back to host 
   }
@@ -88,7 +71,6 @@ unsigned char h2d(unsigned char hex)
 }
 
 void loop() {
-    // Serial.print(Serial.available());
   if (Serial.available() >= 6) {
     // read the incoming byte:
     char header = Serial.read();
@@ -105,17 +87,14 @@ void loop() {
     char b3 = Serial.read();
     char b4 = Serial.read(); 
 
-    int i1 = (h2d(b1) << 4) | h2d(b2);
-    int i2 = (h2d(b3) << 4) | h2d(b4);
+    int mode = (h2d(b1) << 4) | h2d(b2);
+    int cmd = (h2d(b3) << 4) | h2d(b4);
 
-    Serial.print(i1);
-    Serial.print("-");
-    Serial.println(i2);
-
-    if (i1 < 0 || i1 > 255 || i2 < 0 || i2 > 255)
+    if (mode < 0 || mode > 255 || cmd < 0 || cmd > 255)
       return;
-
-    lancCommand(i1, i2);
+    
+    // send command
+    lancCommand(mode, cmd);
 
     // TODO - report response, rather than OK
     Serial.println("OK");

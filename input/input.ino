@@ -1,12 +1,13 @@
 /*
-SIMPLE LANC REMOTE
-Version 1.0
-Sends LANC commands to the LANC port of a video camera.
-Tested with a Canon XF300 camcorder
-For the interface circuit interface see 
+ARDUINO-LANC Input (from controller)
+https://github.com/Julusian/arduino-lanc
+
+Outputs commands in the format: #28-0E
+
+For a list of commands see http://www.boehmel.de/lanc.htm
+
+Based on the work by Martin Koch
 http://controlyourcamera.blogspot.com/2011/02/arduino-controlled-video-recording-over.html
-Feel free to use this code in any way you want.
-2011, Martin Koch
 
 "LANC" is a registered trademark of SONY.
 CANON calls their LANC compatible port "REMOTE".
@@ -64,8 +65,9 @@ void loop() {
 
     // Send retrieved data
     Serial.print("#");
-    Serial.print(b1);
+    printHex(b1, 2);
     Serial.print("-");
-    Serial.println(b2);
+    printHex(b2, 2);
+    Serial.println("");
 }
 
