@@ -1,0 +1,3 @@
+[submodule "lib/ArduinoDevel"]
+	path = lib/ArduinoDevel
+	url = https://github.com/arons/ArduinoDevel
