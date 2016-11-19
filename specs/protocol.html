@@ -1,0 +1,1772 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="keywords" content="LANC, Codes, Control-L, CTRL-L, Video, Video camera, Videokamera Camera, Kamera, still video, SONY, Betamax, SuperBeta">
+<meta name="description" content="Info über den Aufbau und Analyse des SONY LANC Protokolls / Assembly info and analysis of the SONY LANC protocol">
+<link rel="SHORTCUT ICON" href="http://www.boehmel.de/lanc.ico">
+<link rel="stylesheet" type="text/css" href="http://www.boehmel.de/styles.css">
+
+<title>The SONY LANC protocol</title>
+</head>
+
+<body background="bg2.gif">
+
+<a name="top">&nbsp;</a>
+
+<div align="center">
+<table border="0" cellpadding="0" cellspacing="0" width=750">
+    <tr>
+        <td width="48%"><img src="flagdt.gif" alt="Deutsch"
+        align="left" hspace="4" width="84" height="53"></td>
+        <td width="4%">&nbsp;</td>
+        <td width="48%"><img src="flaguk.gif" alt="English"
+        align="left" hspace="4" width="84" height="53"></td>
+    </tr>
+    <tr>
+        <td valign="top" width="48%"><h1>So funktioniert das SONY LANC™-Protokoll</h1></td>
+        <td width="4%">&nbsp;</td>
+        <td valign="top" width="48%"><h1>How SONY's LANC™ protocol works</h1></td>
+    </tr>
+    <tr>
+        <td valign="top" width="48%">Die LANC™ Schnittstelle ist eine bidirektionale serielle
+        open-collector Schnittstelle, auf der zwei Geräte miteinander kommunizieren können.
+        Der Camcorder oder der Fotoapparat (hier heisst die Buchse <b>ACC</b>)
+        erhält darüber Steuerbefehle und gibt seinen Status zurück.
+        Beim Camcorder kann man noch mehr Daten auslesen: Time Code, Data Code, Zählwerk,
+        Restlaufzeit, Warnsignale und Laufwerksrückmeldungen.<br>
+        LANC steht für Logic Application Control Bus System (aus einer Sony Information im
+        April 1991 zur Einführung des "8mm Standard Time Code").<br>
+        Der Master (also der Camcorder oder der Fotoapparat) gibt den Rahmen des Telegramms
+        vor, indem er 8 Startbits generiert, denen jeweils 8 Bits
+        (1 Byte) folgen. Anschliessend folgt ein (langes) Stopbit und das Spiel beginnt von
+        vorn. Ein Bit hat die Länge von 104µs. Der Abstand zwischen zwei Startbits kann
+        je nach Gerät zwischen 1200µs und 1400µs schwanken. Der Abstand zweier Telegramme
+        beträgt 20ms für PAL/625 und 16,6ms für NTSC/525. Das Timing entspricht RS232 bei
+        9600 Baud.<br>
+        Natürlich ist über die Schnittstelle auch der Service Mode einstellbar, ich gehe
+        aber nicht darauf ein. Im Internet findet man dafür fertige Geräte zum Kauf.<br>
+        Auch manche Camcorder der Firma Canon haben eine LANC-Buchse, allerdings reagieren
+        diese Geräte nur auf wenige Befehle.</td>
+        <td valign="top" width="4%">&nbsp;</td>
+        <td valign="top" width="48%">LANC™ is a bidirektional serial open
+        collector communication port, where two devices can communicate with each other.
+        The camcorder or still video camera (plug is called <b>ACC</b> here) is able to
+        receive commands and sends back its status.<br>
+        The camcorder provides even more data: time code, data code, counter, remain time,
+        alerts and drive feedback.<br>
+        LANC ist short for Logic Application Control Bus System (from a Sony information
+        to the introduction of the "8mm Standard Time Code" in april 1991).<br>
+        The master (camcorder or still video camera) generates the telegram frame, creating
+        8 startbits, followed each by 8 bits (1 byte) and a (long) stopbit.
+        Then everything starts again.<br>
+        One bit has a duration of 104µs.<br>
+        The distance between two startbits can vary between 1200µs and 1400µs depending
+        on the device.<br>
+        The distance between two telegrams is 20ms for PAL/625 and 16.6ms for NTSC/525.
+        The timing conforms to RS232 at 9600 Baud.<br>
+        Of course also the service mode is accessable, but I won't enter into this.
+        In the internet you will find ready-to-use devices to buy.<br>
+        Some Canon camcorders also have a LANC-Plug, but only few commands are implemented.</td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td width="100%"><img src="l_protoc.gif" alt="LANC protocol - timing diagram"
+        align="left" border="2" hspace="0" vspace="2" width="722" height="35"></td>
+    </tr>
+    <tr>
+        <td width="100%">LANC protocol - timing diagram</td>
+    </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td><br><b>Site navigation: </b>[<a href="#byte0">Byte 0</a>] [<a href="#byte1">Byte 1</a>]
+        [<a href="#byte2">Byte 2/3</a>] [<a href="#byte4">Byte 4</a>] [<a href="#byte5">Byte 5</a>]
+        [<a href="#byte6">Byte 6/7</a>] [<a href="#links">Links</a>]</td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750" class="font2">
+    <tr>
+        <td valign="top" colspan="4"><h3><img src="lanc.gif" alt="LANC symbol"
+        hspace="4" width="40" height="50">Connections:</h3></td>
+    </tr>
+    <tr>
+        <td align="center" valign="top" width="22%"><img
+        src="lanc_kli.gif" alt="2.5 mm plug" width="150" height="76"></td>
+        <td align="center" valign="top" width="22%"><img
+        src="lanc_min.gif" alt="Mini-DIN plug" width="150" height="76"></td>
+        <td align="center" valign="top" width="22%"><img
+        src="lanc_av.gif" alt="A/V plug" width="150" height="76"></td>
+        <td valign="top" rowspan="3" width="34%">Voltage depends on model and battery.<br>
+        CTL signal only on some devices (VCR control signal).<br><br>
+        Connect LANC Signal to GND for &gt;140 ms to power on (or on Mini-DIN Pin 3 to GND).<br>
+        Cable length can easily exceed 10 m.</td>
+    </tr>
+    <tr>
+        <td align="center" valign="top" width="22%" rowspan="2">2.5 mm stereo &quot;Klinke&quot; /<br>
+        2.5 mm stereo jack</td>
+        <td align="center" valign="top" width="22%">Mini-DIN &nbsp; &nbsp; &nbsp;</td>
+        <td align="center" valign="top" width="22%">A/V jack &nbsp; &nbsp;</td>
+    </tr>
+    <tr>
+        <td align="center" valign="top" width="44%" colspan="2">Sicht auf Gerätebuchse &nbsp; / &nbsp; device jack view</td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td valign="top" width="48%">Ein Befehl ist erst nach 3...4 Telegrammen gültig.<br><br>
+        Ausser LANC (CTRL-L) gibt es bei SONY die CTRL-S Schnittstelle und natürlich die
+        Möglichkeit der IR Bedienung.
+        Die Command-Codes sind überall die gleichen, bei CTRL-S und IR benötigt man
+        noch einen Geräte-Code. Ausserdem sind die Codes verglichen mit LANC um ein Bit nach
+        rechts verschoben.<br>
+        SIRCS entspricht im Timing dem CTRL-S, aber SIRCS wird mit 40 kHz gepulst.<br>
+        </td>
+        <td valign="top" width="4%">&nbsp;</td>
+        <td valign="top" width="48%">A command is valid after 3...4 telegrams.<br><br>
+        Except LANC (CTRL-L) there is also a CTRL-S plug at some SONY devices and of
+        course the infrared control. The command codes are the same, but for CTRL-S
+        and IR you need an additional device code and they are shifted right one bit,
+        compared to LANC.<br>
+        SIRCS and CTRL-S have the same timing, but SIRCS is pulsed with 40 kHz.
+        
+        </td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td><h3><img src="lanc.gif" alt="LANC symbol" hspace="4" width="40" height="50"><a
+        name="byte0">Byte 0:</a></h3>
+
+        <p>Sub-Command for Byte 1.</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="60%" bgcolor="#FFFFFF">
+            <tr>
+                <th width="20%" bgcolor="#C0C0C0">Binary code</th>
+                <th width="60%" bgcolor="#C0C0C0">Description</th>
+            </tr>
+            <tr>
+                <td align="center" width="20%">0001 1000</td>
+                <td width="60%">Normal command to VTR or video camera</td>
+            </tr>
+            <tr>
+                <td align="center" width="20%">0010 1000</td>
+                <td width="60%">Special command to video camera</td>
+            </tr>
+            <tr>
+                <td align="center" width="20%">0011 1000</td>
+                <td width="60%">Special command to VTR</td>
+            </tr>
+            <tr>
+                <td align="center" width="20%">0001 1110</td>
+                <td width="60%">Normal command to still video camera</td>
+            </tr>
+        </table>
+
+        <p>"Low-Nibble": <b>Device Code</b><br>
+        "High-Nibble": <b>Guide Code</b></p>
+        </td>
+    </tr>
+</table>
+
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td><h3><img src="lanc.gif" alt="LANC symbol" hspace="4" width="40" height="50"><a
+        name="byte1">Byte 1:</a></h3>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="60%" bgcolor="#FFFFFF">
+            <tr>
+                <th align="left" width="50%" bgcolor="#C0C0C0">Sub-Command in Byte 0:</th>
+                <th width="50%">0001 1000 (bin)</th>
+            </tr>
+        </table>
+
+        <p>The following table shows the actual Command-Codes to the device (Normal command to VTR or video camera).<br>
+        Only valid with the corresponding Sub-Command in Byte 0.</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="80%" bgcolor="#FFFFFF">
+            <tr>
+                <th width="20%" bgcolor="#C0C0C0">command (hex)</th>
+                <th width="80%" bgcolor="#C0C0C0">action</th>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>00</b></td>
+                <td width="80%">program 1</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>02</b></td>
+                <td width="80%">program 2</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>04</b></td>
+                <td width="80%">program 3</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>05</b></td>
+                <td width="80%">mode (only HDV/AVCHD)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>06</b></td>
+                <td width="80%">program 4</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>08</b></td>
+                <td width="80%">program 5</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0A</b></td>
+                <td width="80%">program 6</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0C</b></td>
+                <td width="80%">program 7</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0E</b></td>
+                <td width="80%">program 8</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>10</b></td>
+                <td width="80%">program 9</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>12</b></td>
+                <td width="80%">program 0 (10: SL-HF950 MKII)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>14</b></td>
+                <td width="80%">program 11 (SL-HF950 MKII)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>16</b></td>
+                <td width="80%">enter, program 12 (SL-HF950 MKII)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>18</b></td>
+                <td width="80%">program 13</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1A</b></td>
+                <td width="80%">program 14</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1C</b></td>
+                <td width="80%">program 15</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1E</b></td>
+                <td width="80%">program 16</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>20</b></td>
+                <td width="80%">program +</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>22</b></td>
+                <td width="80%">program -</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>24</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>26</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>28</b></td>
+                <td width="80%">x2</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>2A</b></td>
+                <td width="80%">power (or viewfinder) off</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>2B</b></td>
+                <td width="80%">photo write</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>2C</b></td>
+                <td width="80%">eject</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>2E</b></td>
+                <td width="80%">main/sub</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>30</b></td>
+                <td width="80%">stop</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>32</b></td>
+                <td width="80%">pause</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>33</b></td>
+                <td width="80%">start/stop</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>34</b></td>
+                <td width="80%">play</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>35</b></td>
+                <td width="80%">tele (only CCD-V90)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>36</b></td>
+                <td width="80%">rew</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>37</b></td>
+                <td width="80%">wide (only CCD-V90)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>38</b></td>
+                <td width="80%">fwd</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>39</b></td>
+                <td width="80%">photo capture</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>3A</b></td>
+                <td width="80%">rec</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>3C</b></td>
+                <td width="80%">rec-pause (some devices)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>3E</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>40</b></td>
+                <td width="80%">still</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>42</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>44</b></td>
+                <td width="80%">x1/10</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>46</b></td>
+                <td width="80%">x1/5 (sometimes: vis. scan)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>48</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>4A</b></td>
+                <td width="80%">x14</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>4C</b></td>
+                <td width="80%">x9</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>4E</b></td>
+                <td width="80%">tracking auto/manual</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>50</b></td>
+                <td width="80%">search -</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>52</b></td>
+                <td width="80%">search +</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>54</b></td>
+                <td width="80%">TV/VTR</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>56</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>58</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>5A</b></td>
+                <td width="80%">VTR</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>5B</b></td>
+                <td width="80%">date search / photo search / photo scan</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>5C</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>5E</b></td>
+                <td width="80%">power off</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>60</b></td>
+                <td width="80%">rev frame</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>62</b></td>
+                <td width="80%">fwd frame</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>64</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>65</b></td>
+                <td width="80%">edit-search -</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>66</b></td>
+                <td width="80%">x1</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>67</b></td>
+                <td width="80%">edit-search +</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>68</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>69</b></td>
+                <td width="80%">rec-review (not i.e. TR-2200)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>6A</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>6C</b></td>
+                <td width="80%">sleep</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>6E</b></td>
+                <td width="80%">tracking normal</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>70</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>72</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>74</b></td>
+                <td width="80%">rew+play</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>76</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>78</b></td>
+                <td width="80%">AUX</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>7A</b></td>
+                <td width="80%">slow +</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>7B</b></td>
+                <td width="80%">tape end search (HDV)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>7C</b></td>
+                <td width="80%">slow -</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>7E</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>80</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>82</b></td>
+                <td width="80%">display mode</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>84</b></td>
+                <td width="80%">menu up</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>86</b></td>
+                <td width="80%">menu down</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>88</b></td>
+                <td width="80%">tracking/fine +</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>8A</b></td>
+                <td width="80%">tracking/fine -</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>8C</b></td>
+                <td width="80%">counter reset</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>8E</b></td>
+                <td width="80%">zero mem</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>90</b></td>
+                <td width="80%">index mark</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>92</b></td>
+                <td width="80%">index erase</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>94</b></td>
+                <td width="80%">shuttle edit +</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>96</b></td>
+                <td width="80%">shuttle edit -</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>98</b></td>
+                <td width="80%">data code or goto</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>99</b></td>
+                <td width="80%">data code or recording parameters</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>9A</b></td>
+                <td width="80%">menu</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>9C</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>9E</b></td>
+                <td width="80%">input select</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>A0</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>A2</b></td>
+                <td width="80%">execute</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>A4</b></td>
+                <td width="80%">quick timer</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>A6</b></td>
+                <td width="80%">index</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>A8</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>AA</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>AC</b></td>
+                <td width="80%">index search +, date search 01 (HDV)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>AE</b></td>
+                <td width="80%">index search -, date search -01 (HDV)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>B0</b></td>
+                <td width="80%">tape speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>B2</b></td>
+                <td width="80%">goto zero / tape return (not DV)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>B4</b></td>
+                <td width="80%">counter display, data screen</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>B6</b></td>
+                <td width="80%">open/close (SL-HF950), replay (FauHaEss)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>B8</b></td>
+                <td width="80%">timer display</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>BA</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>BC</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>BD</b></td>
+                <td width="80%">date display off</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>BE</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>BF</b></td>
+                <td width="80%">date display on</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>C0</b></td>
+                <td width="80%">timer set</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>C2</b></td>
+                <td width="80%">menu right, next</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>C4</b></td>
+                <td width="80%">menu left</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>C6</b></td>
+                <td width="80%">timer clear</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>C8</b></td>
+                <td width="80%">timer check</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>CA</b></td>
+                <td width="80%">timer record</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>CC</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>CE</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>D0</b></td>
+                <td width="80%">audio dub</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>D2</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>D4</b></td>
+                <td width="80%">edit assemble</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>D6</b></td>
+                <td width="80%">edit mark</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>D8</b></td>
+                <td width="80%">synchro edit</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>DA</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>DC</b></td>
+                <td width="80%">digital off (VCR), print (DV)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>DE</b></td>
+                <td width="80%">speed +</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>E0</b></td>
+                <td width="80%">speed -</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>E2</b></td>
+                <td width="80%">stop motion</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>E4</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>E6</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>E8</b></td>
+                <td width="80%">channel scan / flash motion</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>EA</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>EC</b></td>
+                <td width="80%">voice boost</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>EE</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>F0</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>F2</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>F4</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>F6</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>F8</b></td>
+                <td width="80%">digital scan</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>FA</b></td>
+                <td width="80%">high-speed-rew</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>FC</b></td>
+                <td width="80%">still/shuttle (EV-S880)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>FE</b></td>
+                <td width="80%">&nbsp;</td>
+            </tr>
+        </table></td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td>
+        <table border="1" cellpadding="2" cellspacing="1" width="60%" bgcolor="#FFFFFF">
+            <tr>
+                <th align="left" width="50%" bgcolor="#C0C0C0">Sub-Command in Byte 0:</th>
+                <th width="50%">0010 1000 (bin)</th>
+            </tr>
+        </table>
+        
+        <p>The following table shows the actual Command-Codes to the device (Special command to video camera).<br>
+        Only valid with the corresponding Sub-Command in Byte 0.</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="80%" bgcolor="#FFFFFF">
+            <tr>
+                <th width="20%" bgcolor="#C0C0C0">command (hex)</th>
+                <th width="80%" bgcolor="#C0C0C0">action</th>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>00</b></td>
+                <td width="80%">variable speed zoom Tele: slowest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>02</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 00</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>04</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 02</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>06</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 04</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>08</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 06</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0A</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 08</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0C</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 0A</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0E</b></td>
+                <td width="80%">variable speed zoom Tele: fastest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>10</b></td>
+                <td width="80%">variable speed zoom Wide: slowest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>12</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 10</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>14</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 12</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>16</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 14</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>18</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 16</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1A</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 18</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1C</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 1A</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1E</b></td>
+                <td width="80%">variable speed zoom Wide: fastest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>21</b></td>
+                <td width="80%">grid (AVCHD)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>25</b></td>
+                <td width="80%">fader</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>27</b></td>
+                <td width="80%">rec start (DV, some cameras)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>29</b></td>
+                <td width="80%">rec stop (DV, some cameras)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>30</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): slowest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>32</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): faster than 30</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>34</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): faster than 32</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>35</b></td>
+                <td width="80%">Zoom Tele slow (working all cameras since approx. 1996)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>36</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): faster than 34</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>37</b></td>
+                <td width="80%">Zoom Wide slow (working all cameras since approx. 1996)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>38</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): faster than 36</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>39</b></td>
+                <td width="80%">Zoom Tele fast (working all cameras since approx. 1996)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>3A</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): faster than 38</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>3B</b></td>
+                <td width="80%">Zoom Wide fast (working all cameras since approx. 1996)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>3C</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): faster than 3A</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>3E</b></td>
+                <td width="80%">variable speed zoom Tele (avoiding digital zoom, some cameras): fastest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>41</b></td>
+                <td width="80%">Auto-Focus on/off (not if there is a real switch at the camera)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>45</b></td>
+                <td width="80%">Focus manual far</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>47</b></td>
+                <td width="80%">Focus manual near</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>49</b></td>
+                <td width="80%">White balance toggle (only cameras until approx. 1996)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>4B</b></td>
+                <td width="80%">Backlight (not DV)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>51</b></td>
+                <td width="80%">Backlight (DV)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>53</b></td>
+                <td width="80%">Exposure auto/man. toggle (models of the early 90's)<br>
+		Iris more close</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>55</b></td>
+                <td width="80%">Iris more open</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>61</b></td>
+                <td width="80%">Shutter (models of the early 90's)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>77</b></td>
+                <td width="80%">White balance reset (not if white balance is selected via menu)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>85</b></td>
+                <td width="80%">Memory impose (models of the early 90's)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>87</b></td>
+                <td width="80%">Color / Mode (models of the early 90's)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>89</b></td>
+                <td width="80%">Superimpose (models of the early 90's)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>AF</b></td>
+                <td width="80%">Iris auto</td>
+            </tr>
+        </table></td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td>
+        <table border="1" cellpadding="2" cellspacing="1" width="60%" bgcolor="#FFFFFF">
+            <tr>
+                <th align="left" width="50%" bgcolor="#C0C0C0">Sub-Command in Byte 0:</th>
+                <th width="50%">0001 1110 (bin)</th>
+            </tr>
+        </table>
+        
+        <p>The following table shows the actual Command-Codes to the device (Normal command to still video camera).<br>
+        Only valid with the corresponding Sub-Command in Byte 0.</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="80%" bgcolor="#FFFFFF">
+            <tr>
+                <th width="20%" bgcolor="#C0C0C0">command (hex)</th>
+                <th width="80%" bgcolor="#C0C0C0">action</th>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>01</b></td>
+                <td width="80%">variable speed zoom Tele: slowest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>03</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 01</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>05</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 03</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>07</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 05</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>09</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 07</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0B</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 09</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0D</b></td>
+                <td width="80%">variable speed zoom Tele: faster than 0B</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>0F</b></td>
+                <td width="80%">variable speed zoom Tele: fastest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>11</b></td>
+                <td width="80%">variable speed zoom Wide: slowest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>13</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 11</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>15</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 13</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>17</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 15</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>19</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 17</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1B</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 19</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1D</b></td>
+                <td width="80%">variable speed zoom Wide: faster than 1B</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>1F</b></td>
+                <td width="80%">variable speed zoom Wide: fastest speed</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>52</b></td>
+                <td width="80%">photo preview</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>58</b></td>
+                <td width="80%">photo save (or in movie mode: start-stop)</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>5E</b></td>
+                <td width="80%">power off</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>94</b></td>
+                <td width="80%">Zoom Tele slow</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>96</b></td>
+                <td width="80%">Zoom Wide slow</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>98</b></td>
+                <td width="80%">Zoom Tele fast</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><b>9A</b></td>
+                <td width="80%">Zoom Wide fast</td>
+            </tr>
+        </table></td>
+    </tr>
+</table>
+        
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td><h3><img src="lanc.gif" alt="LANC symbol" hspace="4" width="40" height="50"><a
+        name="byte2">Byte 2 / 3:</a></h3>
+
+        <p>The significant <b>Guide Code</b> for Byte 3 is found in the "High-Nibble"
+        of Byte 2.<br>
+        The following table shows the known codes for video cameras.<br>
+        Some cameras show up a sort of ID in Byte 2 and 3, but I did not find any systematic order.<br>
+        Has anybody an idea concerning the meaning of these values?</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="100%" bgcolor="#FFFFFF">
+            <tr>
+                <td align="right" width="5%" bgcolor="#C0C0C0"><font size="1"><b>Guide<br>
+                Code</b></font></td>
+                <td width="31%" bgcolor="#C0C0C0"><b>Description</b></td>
+                <td width="31%" bgcolor="#C0C0C0"><b>Byte 3, L-N</b></td>
+                <td width="31%" bgcolor="#C0C0C0"><b>Byte 3, H-N</b></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>9</b></td>
+                <td valign="top" width="31%"><font size="1">channel / tuner</font></td>
+                <td valign="top" width="31%"><font size="1">AV or OFF: 1010<br>
+                channel: One's<br>
+                No Tuner: 0000 and H-N 0000</font></td>
+                <td valign="top" width="31%"><font size="1">AV or OFF: 1010<br>
+                channel: Ten's (at 0: 0000 or 1010)<br>
+                No Tuner: 0000 and L-N 0000</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>A</b></td>
+                <td valign="top" width="31%"><font size="1">channel / tuner</font></td>
+                <td valign="top" width="31%"><font size="1">AV or OFF: 1010<br>
+                channel: Hundred's<br>
+                No Tuner: 0000</font></td>
+                <td valign="top" width="31%"><font size="1">Tuner-Type 1: 00<br>
+                Tuner-Type 2: 01<br>
+                Tuner-Type 3: 10</font></td>
+            </tr>
+        </table></td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td><h3><img src="lanc.gif" alt="LANC symbol" hspace="4" width="40" height="50"><a
+        name="byte4">Byte 4:</a></h3>
+
+        <p>Status-Code from the connected device (video camera).</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="100%" bgcolor="#FFFFFF">
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><font size="1">L-N<br>H-N</font></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>0</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>1</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>2</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>3</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>4</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>5</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>6</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>7</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>8</b></td>
+            </tr>
+            <tr>
+                <td align="right" valign="bottom" width="6%" bgcolor="#C0C0C0"><b>0</b></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">initial</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">is eject</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">stop</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">fwd</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">rec</font></td>
+                <td align="center" valign="bottom" width="10%">&nbsp;</td>
+                <td align="center" valign="bottom" width="10%"><font size="1">play</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">play/pause fwd</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">AL insert</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>1</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">dew cass. out</font></td>
+                <td align="center" width="10%"><font size="1">load</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">rec/ pause</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">frame fwd</font></td>
+                <td align="center" width="10%"><font size="1">AL ins-pause</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>2</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">ejecting</font></td>
+                <td align="center" width="10%"><font size="1">cassette busy</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">timer-rec</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">x1 fwd</font></td>
+                <td align="center" width="10%"><font size="1">1/5 fwd</font></td>
+                <td align="center" width="10%"><font size="1">AR insert</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>3</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">unload</font></td>
+                <td align="center" width="10%"><font size="1">low-battery</font></td>
+                <td align="center" width="10%"><font size="1">go zero/play f.</font></td>
+                <td align="center" width="10%"><font size="1">timer-rec s.</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">x1 rev</font></td>
+                <td align="center" width="10%"><font size="1">1/5 rev</font></td>
+                <td align="center" width="10%"><font size="1">AR ins-pause</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>4</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">dew stop</font></td>
+                <td align="center" width="10%"><font size="1">fwd mem stop </font></td>
+                <td align="center" width="10%"><font size="1">AV insert</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">cue</font></td>
+                <td align="center" width="10%"><font size="1">1/10 fwd</font></td>
+                <td align="center" width="10%"><font size="1">AL+V insert</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>5</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">emergency</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">AV ins.-pause</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">rev</font></td>
+                <td align="center" width="10%"><font size="1">1/10 rev</font></td>
+                <td align="center" width="10%"><font size="1">AL+V ins-ps</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>6</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">tape end</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">video insert</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">x2/x3 fwd</font></td>
+                <td align="center" width="10%"><font size="1">frame fwd</font></td>
+                <td align="center" width="10%"><font size="1">AR+V insert</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>7</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">tape top</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">video ins.-ps</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">x2/x3 rev</font></td>
+                <td align="center" width="10%"><font size="1">frame rev</font></td>
+                <td align="center" width="10%"><font size="1">AL+R ins-ps</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>8</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">rew</font></td>
+                <td align="center" width="10%"><font size="1">audio dub</font></td>
+                <td align="center" width="10%"><font size="1">edit search+</font></td>
+                <td align="center" width="10%"><font size="1">x9 fwd</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>9</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">stp after zero</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">a.dub pause</font></td>
+                <td align="center" width="10%"><font size="1">edit search-</font></td>
+                <td align="center" width="10%"><font size="1">x9 rev</font></td>
+                <td align="center" width="10%"><font size="1">play/pause rev</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>A</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">load emer.</font></td>
+                <td align="center" width="10%"><font size="1">auto-play</font></td>
+                <td align="center" width="10%"><font size="1">cam rec</font></td>
+                <td align="center" width="10%"><font size="1">edit-s fwd</font></td>
+                <td align="center" width="10%"><font size="1">frame sea. cue</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>B</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">unload emerg.</font></td>
+                <td align="center" width="10%"><font size="1">stop emerg. 1</font></td>
+                <td align="center" width="10%"><font size="1">go zero/play r.</font></td>
+                <td align="center" width="10%"><font size="1">cam stby</font></td>
+                <td align="center" width="10%"><font size="1">edit-s rev</font></td>
+                <td align="center" width="10%"><font size="1">frame sea. rev</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>C</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">stop emerg. 2</font></td>
+                <td align="center" width="10%"><font size="1">rew mem stop</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">x14 fwd</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>D</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">hi-speed rew</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">x14 rev</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>E</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">stop NC</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>F</b></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%"><font size="1">edit pause</font></td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+                <td align="center" width="10%">&nbsp;</td>
+            </tr>
+        </table>
+        
+        <p><br>Status-Code from the connected device (still video camera).</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="100%" bgcolor="#FFFFFF">
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><font size="1">L-N<br>H-N</font></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>0</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>D</b></td>
+                <td align="center" width="10%" bgcolor="#C0C0C0"><b>E</b></td>
+            </tr>
+            <tr>
+                <td align="right" valign="bottom" width="6%" bgcolor="#C0C0C0"><b>0</b></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">initial</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">&nbsp;</font></td>
+                <td align="center" valign="bottom" width="10%"><font size="1">&nbsp;</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>D</b></td>
+                <td align="center" width="10%"><font size="1">&nbsp;</font></td>
+                <td align="center" width="10%"><font size="1">&nbsp;</font></td>
+                <td align="center" width="10%"><font size="1">mpeg movie mode</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>E</b></td>
+                <td align="center" width="10%"><font size="1">&nbsp;</font></td>
+                <td align="center" width="10%"><font size="1">&nbsp;</font></td>
+                <td align="center" width="10%"><font size="1">photo mode</font></td>
+            </tr>
+            <tr>
+                <td align="right" width="6%" bgcolor="#C0C0C0"><b>F</b></td>
+                <td align="center" width="10%"><font size="1">&nbsp;</font></td>
+                <td align="center" width="10%"><font size="1">play mode</font></td>
+                <td align="center" width="10%"><font size="1">setup mode</font></td>
+            </tr>
+        </table></td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td><h3><img src="lanc.gif" alt="LANC symbol" hspace="4" width="40" height="50"><a
+        name="byte5">Byte 5:</a></h3>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="70%" bgcolor="#FFFFFF">
+            <tr>
+                <th width="20%" bgcolor="#C0C0C0">Bit</th>
+                <th width="60%" bgcolor="#C0C0C0">Description</th>
+            </tr>
+            <tr>
+                <td align="center" width="20%">0</td>
+                <td width="60%">1 = invalid transmitted code</td>
+            </tr>
+            <tr>
+                <td align="center" width="20%">1</td>
+                <td width="60%">1 = rec protection (old models: tape pre-end)</td>
+            </tr>
+            <tr>
+                <td align="center" width="20%">2</td>
+                <td width="60%">1 = battery low</td>
+            </tr>
+            <tr>
+                <td align="center" width="20%">3</td>
+                <td width="60%">1 = zero mem / zero found</td>
+            </tr>
+            <tr>
+                <td align="center" width="20%">4...7</td>
+                <td width="60%"><b>Guide Code</b> for Byte 6 and 7</td>
+            </tr>
+        </table></td>
+    </tr>
+</table>
+
+<p><br></p>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td><h3><img src="lanc.gif" alt="LANC symbol" hspace="4" width="40" height="50"><a
+        name="byte6">Byte 6 / 7:</a></h3>
+
+        <p>The significant <b>Guide Code</b> for Byte 6 and 7 is found in the "High-Nibble"
+        of Byte 5.<br>
+        The following table shows the known codes.</p>
+
+        <table border="1" cellpadding="2" cellspacing="1" width="100%" bgcolor="#FFFFFF" class="legend">
+            <tr>
+                <td align="right" width="5%" bgcolor="#C0C0C0"><font size="1"><b>Guide<br>
+                Code</b></font></td>
+                <td width="15%" bgcolor="#C0C0C0"><b>Description</b></td>
+                <td width="20%" bgcolor="#C0C0C0"><b>Byte 6, L-N</b></td>
+                <td width="20%" bgcolor="#C0C0C0"><b>Byte 6, H-N</b></td>
+                <td width="20%" bgcolor="#C0C0C0"><b>Byte 7, L-N</b></td>
+                <td width="20%" bgcolor="#C0C0C0"><b>Byte 7, H-N</b></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>0</b></td>
+                <td valign="top" width="15%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>1</b></td>
+                <td valign="top" width="15%"><font size="1">Status V8 and Hi8</font></td>
+                <td valign="top" width="20%"><font size="1">0+1: tape speed<br>
+                00=SP, 01=LP<br>
+                2: standard FM-sound<br>
+                3: PCM-sound</font></td>
+                <td valign="top" width="20%"><font size="1">0: camera-mode<br>
+                1: rec protection / tape pre-end<br>
+                2: ME (0=MP)<br>
+                3: 13µm (0=10µm)</font></td>
+                <td valign="top" width="20%"><font size="1">0:<br>
+                1: camera-mode<br>
+                2:<br>
+                3: servo / mechanics on</font></td>
+                <td valign="top" width="20%"><font size="1">0+2: input select<br><br>
+                (00=tuner, 01=sim, 11=line)</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>2</b></td>
+                <td valign="top" width="15%"><font size="1">decimal Counter</font></td>
+                <td valign="top" width="20%"><font size="1">One's</font></td>
+                <td valign="top" width="20%"><font size="1">Ten's</font></td>
+                <td valign="top" width="20%"><font size="1">Hundred's</font></td>
+                <td valign="top" width="20%"><font size="1">Thousand's</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>3</b></td>
+                <td valign="top" width="15%"><font size="1">real time Counter,<br>
+                picture Counter</font></td>
+                <td valign="top" width="20%"><font size="1">Seconds One's,<br>
+                Picture One's</font></td>
+                <td valign="top" width="20%"><font size="1">Seconds Ten's,<br>
+                Picture Ten's</font></td>
+                <td valign="top" width="20%"><font size="1">Minutes One's,<br>
+                Picture Hundred's</font></td>
+                <td valign="top" width="20%"><font size="1">Minutes Ten's,<br>
+                Picture Thousand's</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>4</b></td>
+                <td valign="top" width="15%"><font size="1">real time Counter</font></td>
+                <td valign="top" width="20%"><font size="1">Hours One's</font></td>
+                <td valign="top" width="20%"><font size="1">Hours Ten's</font></td>
+                <td valign="top" width="20%"><font size="1">Frames One's or Day One's<br>
+                (or 0000/1111)<br><br>
+                ("Day" only seen in CCD-V90E!)</font></td>
+                <td valign="top" width="20%"><font size="1">0+1: Frames Ten's or Day Ten's<br>
+                2: RCTC<br>
+                3: sign (1=negativ)<br>
+                (or 0000/1111)</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>5</b></td>
+                <td valign="top" width="15%"><font size="1">remain time</font></td>
+                <td valign="top" width="20%"><font size="1">Minutes One's</font></td>
+                <td valign="top" width="20%"><font size="1">Minutes Ten's</font></td>
+                <td valign="top" width="20%"><font size="1">Hours One's</font></td>
+                <td valign="top" width="20%"><font size="1">2: 0=calculating<br>
+                (old devices: 1111)</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>6</b></td>
+                <td valign="top" width="15%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>7</b></td>
+                <td valign="top" width="15%"><font size="1">Status Betamax or DV</font></td>
+                <td valign="top" width="20%"><font size="1">Betamax:<br>
+                0+1: tape speed<br>
+                00=BI, 01=BII, 10=BIII<br>
+                2: Beta Hifi<br>
+                3: servo/ mechanics on<br>
+                DV:<br>
+                0+1: tape-speed<br>
+                00=SP, 01=LP<br>
+                2: audio (0=12bit, 1=16bit)<br>
+                3: servo /  mechanics on</font></td>
+                <td valign="top" width="20%"><font size="1">0: 0=Betamax, 1=DV<br><br>
+                1: rec protection<br>
+                2+3: Byte 7 DV mode:<br>
+                00=DV input<br>
+                01=ext. Status DV in a Camera<br>
+                10=<br>
+                11=ext. Status DV in a VTR</font></td>
+                <td valign="top" width="20%"><font size="1">Betamax:<br>
+                0+1: Audio L+R insert<br>
+                2: Video insert<br>
+                3: assemble<br><br>
+                DV mode 00:<br>
+                input tuner: 0000, input Line: 0101, input DV: 1010<br>
+                DV mode 01:<br>
+                mode: 0000=player, 0011=camera</font></td>
+                <td valign="top" width="20%"><font size="1">Betamax:<br>
+                0: edit<br>
+                1: preview<br>
+                2: EE<br>
+                3:<br><br>
+                DV mode 00:<br>
+                Line 1: 0000 &nbsp; &nbsp; Line 3: 1010<br>
+                Line 2: 0101 &nbsp; &nbsp; Line 4: 1111</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>8</b></td>
+                <td valign="top" width="15%"><font size="1">Data Guide</font></td>
+                <td valign="top" width="20%"><font size="1">DC: 4</font></td>
+                <td valign="top" width="20%"><font size="1">DC: 1</font></td>
+                <td valign="top" width="20%"><font size="1">DC: 3=Date, 4=Time</font></td>
+                <td valign="top" width="20%"><font size="1">DC: 0</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>9</b></td>
+                <td valign="top" width="15%"><font size="1">Data-Code<br>
+                (Tape + Picture)</font></td>
+                <td valign="top" width="20%"><font size="1">Date: Year One's<br>
+                Time: Hour One's</font></td>
+                <td valign="top" width="20%"><font size="1">Date: Year Ten's<br>
+                Time: Hour Ten's</font></td>
+                <td valign="top" width="20%"><font size="1">Date: Month One's<br>
+                Time: Minutes One's</font></td>
+                <td valign="top" width="20%"><font size="1">Date: Month Ten's<br>
+                Time: Minutes Ten's</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>A</b></td>
+                <td valign="top" width="15%"><font size="1">Data-Code<br>
+                (Tape + Picture)</font></td>
+                <td valign="top" width="20%"><font size="1">Date: Day One's<br>
+                Time: Seconds One's</font></td>
+                <td valign="top" width="20%"><font size="1">Date: Day Ten's<br>
+                Time: Seconds Ten's</font></td>
+                <td valign="top" width="20%"><font size="1">DC: 1111<br>
+                sometimes 1000</font></td>
+                <td valign="top" width="20%"><font size="1">DC: 1111<br>
+                sometimes 1001/1011</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>B</b></td>
+                <td valign="top" width="15%"><font size="1">Status AVCHD</font></td>
+                <td valign="top" width="20%"><font size="1">0: 1=AVCHD camera mode<br>
+                1: 1=AVCHD photo mode</font></td>
+                <td valign="top" width="20%"><font size="1">0000</font></td>
+                <td valign="top" width="20%"><font size="1">0000</font></td>
+                <td valign="top" width="20%"><font size="1">0000</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>C</b></td>
+                <td valign="top" width="15%"><font size="1">Status Hi8,<br>
+                DV (+GC1)</font></td>
+                <td valign="top" width="20%"><font size="1">Hi8: 0100<br>
+                DV: 0010 or 0001</font></td>
+                <td valign="top" width="20%"><font size="1">Hi8: 0100<br>
+                DV: 0010 or 0000</font></td>
+                <td valign="top" width="20%"><font size="1">0: camera mode / CTL found<br>
+                1:<br>
+                2: edit on<br>
+                3: auto Hi8</font></td>
+                <td valign="top" width="20%"><font size="1">0000</font></td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>D</b></td>
+                <td valign="top" width="15%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>E</b></td>
+                <td valign="top" width="15%"><font size="1">Status Photo</font></td>
+                <td valign="top" width="20%"><font size="1">0: 1=photo mode selected<br>
+                1: 1=memorystick™ inserted<br>
+                2: 1=memorystick™ write-protected</font></td>
+                <td valign="top" width="20%"><font size="1">0: 1=memorystick™ play<br>
+                1: 1=memorystick™ search<br>
+                2: 1=memorystick™ full<br>
+                3: 1=camera with memorystick™</font></td>
+                <td valign="top" width="20%"><font size="1">0: 1=photo mode available</font></td>
+                <td valign="top" width="20%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" width="5%" bgcolor="#C0C0C0"><b>F</b></td>
+                <td valign="top" width="15%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+                <td valign="top" width="20%">&nbsp;</td>
+            </tr>
+        </table></td>
+    </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td width="48%" valign="top"><a name="links"><br><br>Wer mit dem Lötkolben umgehen
+        kann, kann sich für ca. 20 Euro eine Videoschnittlösung mit integrierter lernfähiger
+        Infrarotfernbedienung bauen.</a><br>
+        Das Ding heisst <a href="http://irdeo.de"><b>IRdeo</b>
+        und ist hier</a> sehr ausführlich beschrieben.<br>
+        Mit IRdeo ist es auch möglich, eigene Programme zu entwerfen, die LANC (CTRL-L)
+        empfangen und Befehle an Sony Equipment aussenden.<br><br><br></td>
+        <td width="4%">&nbsp;</td>
+        <td width="48%" valign="top"><br><br>If you are familiar with a soldering iron
+        you can construct your own video editing solution with integrated learning
+        remote control for only EUR 20.<br>
+        It is called <a href="http://irdeo.de/eirdeo.htm"><b>IRdeo</b>
+        and is described here</a> very comprehensive.<br>
+        With IRdeo it is possible to design your own software for Sony devices to
+        receive and send LANC (CTRL-L) commands.<br><br><br></td>
+    </tr>
+</table>
+</div>
+
+<p align="right"><font size=2>"LANC" und "memorystick" sind eingetragene
+Warenzeichen von <a href="http://www.sony.de/">SONY</a><br>
+"LANC" and "memorystick™" are registered trademarks of <a
+href="http://www.sony-europe.com/">SONY</a></font></p>
+
+<div align="center">
+<table border="0" cellpadding="0" cellspacing="0" width="750">
+    <tr>
+        <td width="48%"><a href="#top">Zum Seitenanfang</a><br><br>
+        <a href="protocl.htm">Zurück zur Protokollübersicht</a><br><br>
+        <a href="index.htm">Zurück zur Hauptseite</a></td>
+        <td width="4%">&nbsp;</td>
+        <td width="48%"><a href="#top">To Page Begin</a><br><br>
+        <a href="protocl.htm">Back to protocol overview</a><br><br>
+        <a href="index2.htm">Back to Main Page</a></td>
+    </tr>
+</table>
+</div>
+
+<div align="right"><font size=1>updated: 2013-12-22</font></div>
+
+<hr size="1" color="#808080">
+
+<div align="center">
+<table border="0" cellpadding="0" cellspacing="0" width="750" bgcolor="#E0E0E0" class="legend">
+    <tr>
+        <td align="center"><font size="1" face="arial, helvetica"><b>legend:</b></font></td>
+        <td><font size="1" face="arial, helvetica">location - world wide web</font></td>
+        <td colspan="2"><a href="http://www.boehmel.de/"><font size="1"
+        face="arial, helvetica">www.boehmel.de</font></a></td>
+        <td align="center" rowspan="6"><img src="legend.gif" width="190" height="138" vspace="2"></td>
+        <td align="center" rowspan="6" valign="center" align="right" width="170"><a href="http://www4.clustrmaps.com/counter/maps.php?url=http://www.boehmel.de/" id="clustrMapsLink">
+        <img src="http://www4.clustrmaps.com/counter/index2.php?url=http://www.boehmel.de/" style="border:0px;"
+        alt="Locations of visitors to this page" title="Visitors locations" id="clustrMapsImg"
+        onerror="this.onerror=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com';" /></a></td>
+    </tr>
+    <tr>
+        <td align="center" valign="top" rowspan="4">
+        <a target="_top" href="http://v.extreme-dm.com/?login=beta950"><img
+        name=im src="http://v1.extreme-dm.com/i.gif" border="0"
+        width="41" height="38" hspace="6" vspace="6" alt=""></a>
+        <script language="javascript"><!--
+        an=navigator.appName;d=document;function
+        pr(){d.write("<img src=\"http://v0.extreme-dm.com",
+        "/0.gif?tag=beta950&j=y&srw="+srw+"&srb="+srb+"&",
+        "rs="+r+"&l="+escape(d.referrer)+"\" height=1 ",
+        "width=1>");}srb="na";srw="na";//-->
+        </script>
+        <script language="javascript1.2"><!--
+        s=screen;srw=s.width;an!="Netscape"?
+        srb=s.colorDepth:srb=s.pixelDepth;//-->
+        </script>
+        <script language="javascript"><!--
+        r=41;d.images?r=d.im.width:z=0;pr();//-->
+        </script><noscript><img height=1 width=1 alt=""
+        src="http://v0.extreme-dm.com/0.gif?tag=beta950&j=n"></noscript></td>
+        <td><font size="1" face="arial, helvetica">location - global position</font></td>
+        <td><font size="1" face="arial, helvetica">Lat<br>Lng</font></td>
+        <td><font size="1" face="arial, helvetica">48.73963° N<br>10.10936° E</font></td>
+    </tr>
+    <tr>
+        <td><font size="1" face="arial, helvetica">communication - electronic mail</font></td>
+        <td colspan="2"><img src="mailtext.gif" alt="anti-spam precaution for mail"
+        align="bottom" border="0" width="96" height="9"></td>
+    </tr>
+    <tr>
+        <td><font size="1" face="arial, helvetica">communication - line</font></td>
+        <td colspan="2" rowspan="2"><img src="fontext.gif" alt="anti-spam precaution for line/cell"
+        align="bottom" border="0" width="85" height="21"></td>
+    </tr>
+    <tr>
+        <td><font size="1" face="arial, helvetica">communication - cell</font></td>
+    </tr>
+    <tr>
+        <td align="center" valign="bottom"><img src="http://boehmel.de/tinc?key=AzeugiTf" border="0" width="82" height="17">
+        <font size="1" face="arial, helvetica"><br><em>July 1997 -</em></font></td>
+        <td><font size="1" face="arial, helvetica">communication - snail mail<br><br>
+        location - geo address</font></td>
+        <td colspan="2"><font size="1" face="arial, helvetica">Manfred Boehmel<br>
+        Am Toebele 2<br>89551 Koenigsbronn<br>Germany (South)</font></td>
+    </tr>
+</table>
+</div>
+
+</body>
+</html>
